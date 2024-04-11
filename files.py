@@ -22,13 +22,11 @@ class Files:
         return _data
 
 class FileSaveDialog(Static):
-    
-    def __init__(self):
-        self.__init__().super()
-        
+
     def compose(self):
         with vertical:
-            yield Label
+            yield Label("Path to save file")
             with horizontal: 
                 yield Input(placeholder="Введите имя файла для сохранения")
                 yield Button(id='select_dir_button', label='Каталог', classes='buttons')
+            yield DirectoryTree()

@@ -27,7 +27,8 @@ class TextualKepApp(App):
                 ('L', 'load_file', 'Загрузить'),
                 ('S', 'save_file', 'Сохранить'),
                 ('C', 'copy_row', 'Дублировать'),
-                ('T', 'swap_theme', 'Сменить тему')
+                ('T', 'swap_theme', 'Сменить тему'),
+                ('Q', 'quit_app', 'Завершить приложение')
         ]
     
     def compose(self):
