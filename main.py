@@ -60,7 +60,14 @@ class TextualKepApp(App):
         
     def action_save_file(self):
         f = Files()
+<<<<<<< HEAD
          
+=======
+        if f.save_to_file(self.query_one(DataTable).rows):
+            self.query_one(RichLog).write('Файл успешно сохранен')
+        else:
+            self.query_one(RichLog).write('Файл не записан. Возникли проблемы')
+>>>>>>> 65dd6cc (zero level)
 # --------------------------------------------
 
     @on(Button.Pressed, "#add_button")
