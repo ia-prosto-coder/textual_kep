@@ -12,7 +12,7 @@ class TextualKepApp(App):
         super().__init__()
         self.inputs = [Input(id='postfix_button', placeholder='Постфикс тега'),
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
-                Input(id='address', classes='inputs', placeholder='Адрес регистра', ),
+                Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
                 Input(id='command', classes='inputs', placeholder='Номер функции'),
                 Input(id='unit', classes='inputs', placeholder='Ед. измерения'),
@@ -60,11 +60,37 @@ class TextualKepApp(App):
         
     def action_save_file(self):
         f = Files()
-        if f.save_to_file(self.query_one(DataTable).rows):
+        if f.save_to_file([self.query_one(DataTable).rows]):
             self.query_one(RichLog).write('Файл успешно сохранен')
         else:
             self.query_one(RichLog).write('Файл не записан. Возникли проблемы')
+
+    def action_load_file(self):
+        f = Files()
+        """ Загружаем результаты работы из файла"""
+        main_box = self.query_one("#data_box")
+        main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
+        main_box.refresh()
+        
+        
 # --------------------------------------------
+
+# ------------ обработчики событий виджетов
+    @on(Input.Submitted, "#load_file_name")
+    def load_file_name_submitted(self, event:Input.Submitted) -> None:
+        res = Files().load_from_file(self.query_one('#load_file_name').value)
+        if res is not None:
+            table = self.query_one(DataTable)
+            table.rows.clear()
+            for row in res:
+                table.add_row[row]
+            table.refresh()
+            self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} успешно загружен")
+        else:
+            self.query_one(RichLog.write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка"))
+
+        
+            
 
     @on(Button.Pressed, "#add_button")
     def add_button_pressed(self, event:Button.Pressed) -> None:
