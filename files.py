@@ -1,4 +1,6 @@
-from textual.app import ComposeResult
+
+from os.path import exists
+from os import mkdir
 from textual.widgets import Static, Input, Button, DirectoryTree, Label
 from textual.layouts import vertical, horizontal
 import pickle as pkl
@@ -29,7 +31,9 @@ class Files:
             bool: В случае успешной записи возвращает True иначе False
         """
         try:
-            with open(self.file_name, mode='wb') as fp: 
+            if not exists('results'):
+                mkdir('results')
+            with open(f'results/{self.file_name}', mode='wb') as fp: 
                 pkl.dump(data, fp)
                 return None
         except Exception as e:
