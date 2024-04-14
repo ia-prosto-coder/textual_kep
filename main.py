@@ -59,11 +59,15 @@ class TextualKepApp(App):
         self.dark = not self.dark
         
     def action_save_file(self):
+        """Сохраняем промежуточные данные при завершении работы"""
         f = Files()
-        if f.save_to_file([self.query_one(DataTable).rows]):
+        table_ = self.query_one(DataTable)  
+        res = f.save_to_file([table_.get_row(key_) for key_ in table_.rows])
+        self.query_one(RichLog).write([table_.get_row(key_) for key_ in table_.rows])
+        if  res is None:
             self.query_one(RichLog).write('Файл успешно сохранен')
         else:
-            self.query_one(RichLog).write('Файл не записан. Возникли проблемы')
+            self.query_one(RichLog).write(f'Файл не записан. Возникли проблемы {res}')
 
     def action_load_file(self):
         f = Files()
