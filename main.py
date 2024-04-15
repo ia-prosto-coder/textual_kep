@@ -87,12 +87,12 @@ class TextualKepApp(App):
             table = self.query_one(DataTable)
             table.rows.clear()
             for row in res:
-                table.add_row[row]
+                table.add_row(*row)
             table.refresh()
             self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} успешно загружен")
         else:
             self.query_one(RichLog.write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка"))
-
+        self.query_one('#load_file_name').remove()
         
             
 
