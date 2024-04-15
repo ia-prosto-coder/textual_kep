@@ -91,7 +91,7 @@ class TextualKepApp(App):
             table.refresh()
             self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} успешно загружен")
         else:
-            self.query_one(RichLog.write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка"))
+            self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка")
         self.query_one('#load_file_name').remove()
         
             

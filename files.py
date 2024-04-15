@@ -49,7 +49,7 @@ class Files:
         if file_name is not None:
             self.file_name = file_name
         try:
-            with open(self._file_name, mode='rb') as fp:
+            with open(f"results/{self._file_name}", mode='rb') as fp:
                 _data = pkl.load(fp)
             return _data
         except FileNotFoundError:
