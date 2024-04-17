@@ -18,8 +18,7 @@ class Files:
     @file_name.setter
     def file_name(self, value:str) -> None:
         if not len(value):
-            self._file_name = f"result_{dt.now().strftime('%d%m%Y')}"
-            print(f'Пустое имя файла, присвоено {self._file_name}')
+            self._file_name = f"result_{dt.now().strftime('%Y%m%d')}"
         else:    
             self._file_name = value
         

@@ -61,6 +61,9 @@ class TextualKepApp(App):
     def action_save_file(self):
         """Сохраняем промежуточные данные при завершении работы"""
         f = Files()
+        main_box = self.query_one("main_box")
+        main_box.mount(Input(id='save_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
+        main_box.refresh()
         table_ = self.query_one(DataTable)  
         res = f.save_to_file([table_.get_row(key_) for key_ in table_.rows])
         self.query_one(RichLog).write([table_.get_row(key_) for key_ in table_.rows])
@@ -82,6 +85,7 @@ class TextualKepApp(App):
 # ------------ обработчики событий виджетов
     @on(Input.Submitted, "#load_file_name")
     def load_file_name_submitted(self, event:Input.Submitted) -> None:
+        self.query_one(RichLog).write(event.input.id)        
         res = Files().load_from_file(self.query_one('#load_file_name').value)
         if res is not None:
             table = self.query_one(DataTable)
@@ -93,6 +97,11 @@ class TextualKepApp(App):
         else:
             self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка")
         self.query_one('#load_file_name').remove()
+
+    # @on(Input.Submitted, "#save_file_name")
+    # def save_file_name_submitted(self, event:Input.Submitted) -> None:
+    
+    
         
             
 
