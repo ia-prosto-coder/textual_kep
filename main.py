@@ -1,21 +1,23 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog
+from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select
 from textual.scroll_view import ScrollView
 from textual.containers import ScrollableContainer, Container
 from textual import on
 
 from files import Files
 
-NIGHT = False
+NIGHT = True
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
+        self.units = [('МПа', 0), ('С', 1), ('мм/с', 2), ('КПа', 3), ('Гц', 4), ('А', 5)]
         self.inputs = [Input(id='postfix_button', placeholder='Постфикс тега'),
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
                 Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
                 Input(id='command', classes='inputs', placeholder='Номер функции'),
-                Input(id='unit', classes='inputs', placeholder='Ед. измерения'),
+                # Input(id='unit', classes='inputs', placeholder='Ед. измерения'),
+                Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
                 Input(id='eu_min', classes='inputs', placeholder='Мин. значение'),
                 ]
@@ -52,7 +54,14 @@ class TextualKepApp(App):
 
     def on_mount(self):
         table = self.query_one(DataTable)
-        table.add_columns(*[i.placeholder for i in self.inputs])
+        for i in self.inputs:
+            try:
+                table.add_column(i.placeholder)
+            except AttributeError as e:
+                if isinstance(i, Select):
+                    if i.id == 'unit':
+                        table.add_column('Ед.ищмерения')
+                    
         self.dark = NIGHT
 # ---- Обработка BINDINGS приложения -------
     def action_swap_theme(self):
