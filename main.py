@@ -6,7 +6,7 @@ from textual import on
 
 from files import Files
 
-NIGHT = True
+NIGHT = False
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
@@ -61,39 +61,57 @@ class TextualKepApp(App):
     def action_save_file(self):
         """Сохраняем промежуточные данные при завершении работы"""
         f = Files()
+        main_box = self.query_one("#data_box")
+        main_box.mount(Input(id='save_file_name', placeholder='Имя файла для сохранения', value=f.file_name, classes='inputs'))
+        main_box.refresh()
+
+
+    def action_load_file(self):
+        """ Загружаем результаты работы из файла"""
+        f = Files()
+        main_box = self.query_one("#data_box")
+        main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
+        main_box.refresh()
+# --------------------------------------------
+
+# ------------ обработчики событий виджетов
+    @on(Input.Submitted)
+    def load_file_name_submitted(self, event:Input.Submitted) -> None:
+        self.query_one(RichLog).write(event.input.id)
+        res = None
+        table = self.query_one(DataTable)
+        if event.input.id == 'load_file_name':        
+# ------------ Если происходит загрузка файла, очищаем таблицу и загружаем данные из файла                
+            res = Files().load_from_file(self.query_one('#load_file_name').value)
+            oper_string = f'Загрузка из файла {event.input.value}'
+            if res is not None:
+                table.rows.clear()
+                for row in res:
+                    table.add_row(*row)
+                table.refresh()
+        elif event.input.id == 'save_file_name':
+# ----------- Если происходит сохранение файла выгружаем данные таблицы в список и сериализуем его 
+            res = Files().save_to_file([table.get_row(key_) for key_ in table.rows])    
+            oper_string = f'Сохранение в файл {event.input.value}'
+# ----------- Сообщаем всему миру об успехе или нейдаче операции 
+        if res is not None:
+            self.query_one(RichLog).write(f"Файл {oper_string} успешно завершено")
+        else:
+            self.query_one(RichLog).write(f"Файл {event.input.value} не найден, или в файле ошибка")
+        self.query_one(f'#{event.input.id}').remove()
+
+    @on(Input.Submitted, "#save_file_name")
+    def save_file_name_submitted(self, event:Input.Submitted) -> None:
+        f = Files()
         table_ = self.query_one(DataTable)  
         res = f.save_to_file([table_.get_row(key_) for key_ in table_.rows])
         self.query_one(RichLog).write([table_.get_row(key_) for key_ in table_.rows])
         if  res is None:
             self.query_one(RichLog).write('Файл успешно сохранен')
         else:
-            self.query_one(RichLog).write(f'Файл не записан. Возникли проблемы {res}')
-
-    def action_load_file(self):
-        f = Files()
-        """ Загружаем результаты работы из файла"""
-        main_box = self.query_one("#data_box")
-        main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
-        main_box.refresh()
-        
-        
-# --------------------------------------------
-
-# ------------ обработчики событий виджетов
-    @on(Input.Submitted, "#load_file_name")
-    def load_file_name_submitted(self, event:Input.Submitted) -> None:
-        res = Files().load_from_file(self.query_one('#load_file_name').value)
-        if res is not None:
-            table = self.query_one(DataTable)
-            table.rows.clear()
-            for row in res:
-                table.add_row(row)
-            table.refresh()
-            self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} успешно загружен")
-        else:
-            self.query_one(RichLog).write(f"Файл {self.query_one('#load_file_name').value} не найден, или в файле ошибка")
-        self.query_one('#load_file_name').remove()
-        self.query_one('#data_box').refresh()
+            self.query_one(RichLog).write(f'Файл не записан. Возникли проблемы {res}')       
+    
+    
         
             
 
