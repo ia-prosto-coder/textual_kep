@@ -6,7 +6,7 @@ from textual import on
 
 from files import Files
 
-NIGHT = True
+NIGHT = False
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
