@@ -6,17 +6,27 @@ from textual import on
 
 from files import Files
 
-NIGHT = False
+NIGHT = True
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
         self.units = [('МПа', 0), ('С', 1), ('мм/с', 2), ('КПа', 3), ('Гц', 4), ('А', 5)]
+        self.rtu_commands  =[
+            ('01 Чтение DO', 1),
+            ('02 Чтение DI', 2),
+            ('03 Чтение AO', 3),
+            ('04 Чтение AI', 4),
+            ('05 Запись одного DO', 5),
+            ('06 Запись одного AO', 6),
+            ('15 Запись нескольких DO', 15),
+            ('16 Запись нескольких AO', 16)
+        ]
         self.inputs = [Input(id='postfix_button', placeholder='Постфикс тега'),
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
                 Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
-                Input(id='command', classes='inputs', placeholder='Номер функции'),
-                # Input(id='unit', classes='inputs', placeholder='Ед. измерения'),
+                Select(id='command', classes='inputs', options=self.rtu_commands, prompt='Команды  RTU'),
+#                Input(id='command', classes='inputs', placeholder='Номер функции'),
                 Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
                 Input(id='eu_min', classes='inputs', placeholder='Мин. значение'),
@@ -60,7 +70,9 @@ class TextualKepApp(App):
             except AttributeError as e:
                 if isinstance(i, Select):
                     if i.id == 'unit':
-                        table.add_column('Ед.ищмерения')
+                        table.add_column('Ед.измерения')
+                    if i.id == 'command':
+                        table.add_column('Команда RTU')
                     
         self.dark = NIGHT
 # ---- Обработка BINDINGS приложения -------
@@ -130,8 +142,16 @@ class TextualKepApp(App):
         Args:
             event (Button.Pressed): Событие привязано к кнопке add_button
         """
+        def get_title(select:Select) -> str:
+            lst_ = self.units if select.id == '#unit' else self.rtu_commands
+            
+            return 'Column'
+        
+        comm_select = self.query_one('#command')
+        self.query_one(RichLog).write(comm_select)
         table = self.query_one('#data_table')
-        res = (tuple([i.value for i in self.inputs]))
+        res = (tuple([i.value if isinstance(i, Input) else get_title(i) for i in self.inputs]))
+        # res = (tuple([i.value for i in self.inputs]))
         self.query_one(RichLog).write(res)
         table.add_row(*res,)
         
