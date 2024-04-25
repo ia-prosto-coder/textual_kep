@@ -25,7 +25,7 @@ class TextualKepApp(App):
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
                 Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
-                Select(id='command', classes='inputs', options=self.rtu_commands, prompt='Команды  RTU'),
+                Select(id='command', classes='selects', options=self.rtu_commands, prompt='Команды  RTU'),
 #                Input(id='command', classes='inputs', placeholder='Номер функции'),
                 Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
@@ -143,15 +143,12 @@ class TextualKepApp(App):
             event (Button.Pressed): Событие привязано к кнопке add_button
         """
         def get_title(select:Select) -> str:
-            lst_ = self.units if select.id == '#unit' else self.rtu_commands
-            
-            return 'Column'
+            lst_ = self.units if select.id == 'unit' else self.rtu_commands
+            res_  = list(filter(lambda x:x[1]==select.value, lst_))[0][0]
+            return res_
         
-        comm_select = self.query_one('#command')
-        self.query_one(RichLog).write(comm_select)
         table = self.query_one('#data_table')
         res = (tuple([i.value if isinstance(i, Input) else get_title(i) for i in self.inputs]))
-        # res = (tuple([i.value for i in self.inputs]))
         self.query_one(RichLog).write(res)
         table.add_row(*res,)
         
