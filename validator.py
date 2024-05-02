@@ -3,8 +3,10 @@ from textual.widgets import Select
 from re import fullmatch
 
 class Validator:
-    def __init__(self):
-        self._inputs: list
+    def __init__(self, inputs=[]):
+        self._inputs = inputs
+        
+    
 
 
     @property
@@ -16,21 +18,22 @@ class Validator:
         self._inputs = value
     
 
-    def inputs_test(self) -> Union[list, bool]:
+    def inputs_test(self, inputs) -> Union[list, bool]:
+        self.inputs = inputs
         # TODO  Реализовать контроль первой цифры адреса(корректной команды MODBUS)
         res_list = []
         
         def postfix_check(value) -> str:
-            return '' if fullmatch(r'\w{1,10}',value) is not None else 'Постфикс должен быть меньше 10 символов'
+            return '' if fullmatch(r'\_\w{1,10}',value) is not None else 'Постфикс должен быть длиной от 1 до 10 символов и начинаться с _'
         
         def tagname_check(value) -> str:
-            return '' if fullmatch(r'\w{1,20}', value) is not None  else 'В имени тега должны быть только буквы,  цифры и подчеркивания, не больше 20 символов'
+            return '' if fullmatch(r'\w{1,20}', value) is not None  else 'В имени тега должны быть только буквы,  цифры и подчеркивания, от 1 до 20 символов'
         
         def address_check(value) -> str:
             """ Проверяем рег. выражением формат ввода должен быть вида 012453 или 012345.02
                 если проверка не прошла возбуждаем исключение"""
             try:
-                if fullmatch(r'(\d{6}\.\d{2})|\d{6}',  value) is None:
+                if fullmatch(r'\d{6}\.?(\d{2})?',  value) is None:
                     raise ValueError
                 elif '.' in value:
                     lst_ = list(map(int, value.split('.')))
@@ -49,8 +52,9 @@ class Validator:
             else:
                 return ''
             
-        def max_min_value_check(value) -> str:
-            return ''   
+        def max_min_value_check(value, id) -> str:
+            # Проверка цифрового значения должно быть целое или с плавающей точкой
+            return '' if fullmatch(r'\-?\d+\.?(\d+)?', value) is not None else f'Для поля {id} допускается целое или вещественное число'
             
         res_list = [postfix_check(self.inputs[0].value),
                     tagname_check(self.inputs[1].value),
@@ -59,7 +63,9 @@ class Validator:
                     # Проверяем на пустое значение селекты-комбобоксы
                     select_check(self.inputs[4]),
                     select_check(self.inputs[5]),
-                    max_min_value_check(self.inputs[6].value),
-                    max_min_value_check(self.inputs[7].value)
+                    # Проверка ввода числовых значений
+                    max_min_value_check(self.inputs[6].value, self.inputs[6].id),
+                    max_min_value_check(self.inputs[7].value, self.inputs[7].id)
                     ]
-        return res_list if (any([len(i) for i in res_list])) else True
+        #  Возвращаем список косяков или True если все проверки пройдены
+        return list(filter(lambda i:len(i), res_list)) if (any([len(i) for i in res_list])) else True
