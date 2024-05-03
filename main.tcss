@@ -1,5 +1,5 @@
 Screen {
-    layout:vertical;
+    layout: vertical;
     overflow-x: auto;
     layers: below above;
 }
@@ -42,6 +42,6 @@ Button{
 }
 
 #buttons{
-    layout:horizontal;
+    layout: horizontal;
     content-align: center middle;
 }

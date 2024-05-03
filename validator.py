@@ -45,5 +45,6 @@ class Validator:
                     tagname_check(self.inputs[1].value),
                     address_check(self.inputs[2].value),
                     description_check(self.inputs[3].value),
+                    
                     ]
         return res_list if (any([len(i) for i in res_list])) else True
