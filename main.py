@@ -4,9 +4,10 @@ from textual.scroll_view import ScrollView
 from textual.containers import ScrollableContainer, Container
 from textual import on
 
+from validator import Validator
 from files import Files
 
-NIGHT = True
+NIGHT = False
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
@@ -25,8 +26,7 @@ class TextualKepApp(App):
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
                 Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
-                Select(id='command', classes='inputs', options=self.rtu_commands, prompt='Команды  RTU'),
-#                Input(id='command', classes='inputs', placeholder='Номер функции'),
+                Select(id='command', classes='selects', options=self.rtu_commands, prompt='Команды  RTU'),
                 Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
                 Input(id='eu_min', classes='inputs', placeholder='Мин. значение'),
@@ -98,7 +98,6 @@ class TextualKepApp(App):
 # ------------ обработчики событий виджетов
     @on(Input.Submitted)
     def load_file_name_submitted(self, event:Input.Submitted) -> None:
-        self.query_one(RichLog).write(event.input.id)
         res = None
         table = self.query_one(DataTable)
         if event.input.id == 'load_file_name':        
@@ -114,7 +113,7 @@ class TextualKepApp(App):
 # ----------- Если происходит сохранение файла выгружаем данные таблицы в список и сериализуем его 
             res = Files().save_to_file([table.get_row(key_) for key_ in table.rows])    
             oper_string = f'Сохранение в файл {event.input.value}'
-# ----------- Сообщаем всему миру об успехе или нейдаче операции 
+# ----------- Сообщаем всему миру об успехе или неудаче операции 
         if res is not None:
             self.query_one(RichLog).write(f"Файл {oper_string} успешно завершено")
         else:
@@ -131,10 +130,7 @@ class TextualKepApp(App):
             self.query_one(RichLog).write('Файл успешно сохранен')
         else:
             self.query_one(RichLog).write(f'Файл не записан. Возникли проблемы {res}')       
-    
-    
         
-            
 
     @on(Button.Pressed, "#add_button")
     def add_button_pressed(self, event:Button.Pressed) -> None:
@@ -143,24 +139,30 @@ class TextualKepApp(App):
             event (Button.Pressed): Событие привязано к кнопке add_button
         """
         def get_title(select:Select) -> str:
-            lst_ = self.units if select.id == '#unit' else self.rtu_commands
-            
-            return 'Column'
+            lst_ = self.units if select.id == 'unit' else self.rtu_commands
+            res_  = list(filter(lambda x:x[1]==select.value, lst_))[0][0]
+            return res_
         
-        comm_select = self.query_one('#command')
-        self.query_one(RichLog).write(comm_select)
         table = self.query_one('#data_table')
-        res = (tuple([i.value if isinstance(i, Input) else get_title(i) for i in self.inputs]))
-        # res = (tuple([i.value for i in self.inputs]))
-        self.query_one(RichLog).write(res)
-        table.add_row(*res,)
+        # self.query_one(RichLog).write(res)
+        val = Validator().inputs_test(self.inputs)
+        if val == True:
+            res = (tuple([i.value if isinstance(i, Input) else get_title(i) for i in self.inputs]))
+            table.add_row(*res,)
+        else:
+            for row in val:
+                self.query_one(RichLog).write(row)
         
     @on(Button.Pressed, '#clear_button')
     def clear_button_pressed(self) -> None:
         """Очищает поля ввода кроме постфикса для тега
         """
         for i in self.inputs[1:]:
-            i.value = ''
+            try:
+                i.value = ''
+            except:
+                i.clear()
+                
     
     @on(Button.Pressed, '#delete_button')
     def delete_button_pressed(self) -> None:
@@ -172,16 +174,28 @@ class TextualKepApp(App):
             row_key_, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
             table.remove_row(row_key_)
         else:
-            self.query_one(RichLog).write("Table is empty!!")
+            self.query_one(RichLog).write("Таблица пустая!!!")
 
         
     @on(DataTable.RowSelected, "#data_table")
     def data_table_row_selected(self) -> None:
         """Возвращаем значения из выбраной строки таблицы в поля ввода"""
+        def get_select_key(id:str,  data) -> int:
+            sel_ = None
+            if id == 'command':
+                sel_ = self.rtu_commands
+            elif id == 'unit':
+                sel_ = self.units  
+            return list(filter(lambda x:x[0]==data, sel_))[0][1]
+   
+        
         table = self.query_one(DataTable)
         key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
         for index, data in enumerate(table.get_row(row_key=key)):
-            self.inputs[index].value = data        
+            if isinstance(self.inputs[index], Input):
+                self.inputs[index].value = data
+            elif isinstance(self.inputs[index], Select):
+                self.inputs[index].value = get_select_key(self.inputs[index].id, data)
             
     @on(Button.Pressed, "#post_button")
     def edit_button_pressed(self) -> None:
