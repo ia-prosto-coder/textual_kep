@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select
+from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select, TabbedContent
 from textual.scroll_view import ScrollView
 from textual.containers import ScrollableContainer, Container
 from textual import on
@@ -93,6 +93,9 @@ class TextualKepApp(App):
         main_box = self.query_one("#data_box")
         main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
         main_box.refresh()
+        
+    def action_quit_app(self):
+        exit(0)
 # --------------------------------------------
 
 # ------------ обработчики событий виджетов
