@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select, TabbedContent
+from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select, TabbedContent, TabPane
 from textual.scroll_view import ScrollView
 from textual.containers import ScrollableContainer, Container
 from textual import on
@@ -45,20 +45,20 @@ class TextualKepApp(App):
     
     def compose(self):
         yield Header()
-        with Container(id='main_box'):
-            with ScrollableContainer(id='left_box', classes='containers'):
-                
-                for inp in self.inputs:
-                    yield inp 
-                yield Button(id='add_button', label='Добавить тег',  classes='buttons')
-                yield Button(id='post_button', label="Изменить строку", classes='buttons')
-                yield Button(id='clear_button', label='Очистить поля', classes='buttons')
-                yield Button(id='delete_button', label='Удалить строку', classes='buttons')
-
-
-            with ScrollableContainer(id='data_box', classes='containers'):
-                yield DataTable(id='data_table', cursor_type='row')
-
+        with TabbedContent():
+            with TabPane('Исходные данные'):
+                with Container(id='main_box'):           
+                        with ScrollableContainer(id='left_box', classes='containers'):
+                            for inp in self.inputs:
+                                yield inp
+                            yield Button(id='add_button', label='Добавить тег',  classes='buttons')
+                            yield Button(id='post_button', label="Изменить строку", classes='buttons')
+                            yield Button(id='clear_button', label='Очистить поля', classes='buttons')
+                            yield Button(id='delete_button', label='Удалить строку', classes='buttons')
+                        with ScrollableContainer(id='data_box', classes='containers'):
+                            yield DataTable(id='data_table', cursor_type='row')
+            with TabPane('Экспорт данных'):
+                pass
         yield RichLog()
         yield Footer()
 

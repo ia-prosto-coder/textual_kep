@@ -60,16 +60,12 @@ class Validator:
                     tagname_check(self.inputs[1].value),
                     address_check(self.inputs[2].value),
                     description_check(self.inputs[3].value),
-<<<<<<< HEAD
-                    
-=======
                     # Проверяем на пустое значение селекты-комбобоксы
                     select_check(self.inputs[4]),
                     select_check(self.inputs[5]),
                     # Проверка ввода числовых значений
                     max_min_value_check(self.inputs[6].value, self.inputs[6].id),
                     max_min_value_check(self.inputs[7].value, self.inputs[7].id)
->>>>>>> bd490388f49d3dac8ef578b0a4a56358443d357b
                     ]
         #  Возвращаем список косяков или True если все проверки пройдены
         return list(filter(lambda i:len(i), res_list)) if (any([len(i) for i in res_list])) else True
