@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select, TabbedContent, TabPane
+from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select
 from textual.scroll_view import ScrollView
 from textual.containers import ScrollableContainer, Container
 from textual import on
@@ -43,22 +43,18 @@ class TextualKepApp(App):
                 ('Q', 'quit_app', 'Завершить приложение')
         ]
     
-    def compose(self):
+    def compose(self) -> ComposeResult:
         yield Header()
-        with TabbedContent():
-            with TabPane('Исходные данные'):
-                with Container(id='main_box'):           
-                        with ScrollableContainer(id='left_box', classes='containers'):
-                            for inp in self.inputs:
-                                yield inp
-                            yield Button(id='add_button', label='Добавить тег',  classes='buttons')
-                            yield Button(id='post_button', label="Изменить строку", classes='buttons')
-                            yield Button(id='clear_button', label='Очистить поля', classes='buttons')
-                            yield Button(id='delete_button', label='Удалить строку', classes='buttons')
-                        with ScrollableContainer(id='data_box', classes='containers'):
-                            yield DataTable(id='data_table', cursor_type='row')
-            with TabPane('Экспорт данных'):
-                pass
+        with Container(id='main_box'):           
+                with ScrollableContainer(id='left_box', classes='containers'):
+                    for inp in self.inputs:
+                        yield inp
+                    yield Button(id='add_button', label='Добавить тег',  classes='buttons')
+                    yield Button(id='post_button', label="Изменить строку", classes='buttons')
+                    yield Button(id='clear_button', label='Очистить поля', classes='buttons')
+                    yield Button(id='delete_button', label='Удалить строку', classes='buttons')
+                with ScrollableContainer(id='data_box', classes='containers'):
+                    yield DataTable(id='data_table', cursor_type='row')
         yield RichLog()
         yield Footer()
 
@@ -83,19 +79,22 @@ class TextualKepApp(App):
         """Сохраняем промежуточные данные при завершении работы"""
         f = Files()
         main_box = self.query_one("#data_box")
-        main_box.mount(Input(id='save_file_name', placeholder='Имя файла для сохранения', value=f.file_name, classes='inputs'))
-        main_box.refresh()
+        try:
+            main_box.mount(Input(id='save_file_name', placeholder='Имя файла для сохранения', value=f.file_name, classes='inputs'))
+            main_box.refresh()
+        except Exception:
+            pass
 
 
     def action_load_file(self):
         """ Загружаем результаты работы из файла"""
         f = Files()
         main_box = self.query_one("#data_box")
-        main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
-        main_box.refresh()
-        
-    def action_quit_app(self):
-        exit(0)
+        try:
+            main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
+            main_box.refresh()
+        except Exception:
+            pass
 # --------------------------------------------
 
 # ------------ обработчики событий виджетов

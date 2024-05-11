@@ -25,19 +25,19 @@ Button{
 }
 #main_box{
     layout:horizontal;
-    height: 90%;
+    height: 80%;
 }
 
 #left_box{
-    height: 90%;
+    /* height: 90%; */
     width: 1fr;
     border: solid green;
 }
 
 #data_box{
-    height: 90%;
+    /* height: 90%; */
     width: 4fr;
-    border: solid orange;
+    border: solid green;
 }
 
 .buttons{
@@ -45,12 +45,3 @@ Button{
     content-align: center middle;
 }
 
-.containers{
-    height: 80%;
-    width: 100%;
-    border: green;
-}
-
-TabbedContent{
-    height: 80%;
-}
