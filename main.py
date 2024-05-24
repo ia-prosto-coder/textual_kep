@@ -40,6 +40,9 @@ class TextualKepApp(App):
                 ('S', 'save_file', 'Сохранить'),
                 ('C', 'copy_row', 'Дублировать'),
                 ('T', 'swap_theme', 'Сменить тему'),
+                ('I', 'export_intouch', 'Экспорт в Intouch'),
+                ('K', 'export_kep', 'Экспорт в Kep'),
+                ('W', 'export_weintek', 'Экспорт в Weintek'),
                 ('Q', 'quit_app', 'Завершить приложение')
         ]
     
@@ -85,7 +88,6 @@ class TextualKepApp(App):
         except Exception:
             pass
 
-
     def action_load_file(self):
         """ Загружаем результаты работы из файла"""
         f = Files()
@@ -95,6 +97,23 @@ class TextualKepApp(App):
             main_box.refresh()
         except Exception:
             pass
+    def action_export_intouch(self):
+        """
+         Экспорт данных в файл для загрузки в Wonderware Intouch
+        """        
+        pass
+
+    def action_export_kep(self):
+        """
+         Экспорт данных в файл для загрузки в Kep Server
+        """        
+        pass
+
+    def action_export_weintek(self):
+        """
+        Экспорт данных в файл для загрузки в панель Weintek
+        """
+
 # --------------------------------------------
 
 # ------------ обработчики событий виджетов

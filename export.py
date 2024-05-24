@@ -40,3 +40,14 @@ class Export():
     def opc_headers(self):
         return self._opc_headers
     
+    def opc_gen(self, data) -> bool:
+        return True
+    
+    def intouch_gen(self, data) -> bool:
+        return True
+    
+    def weintek_gen(self, data) -> bool:
+        return True
+    
+
+    
