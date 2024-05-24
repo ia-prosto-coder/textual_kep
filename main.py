@@ -6,6 +6,7 @@ from textual import on
 
 from validator import Validator
 from files import Files
+from additions import FileType
 
 NIGHT = False
 class TextualKepApp(App):
@@ -77,22 +78,26 @@ class TextualKepApp(App):
         
     def action_save_file(self):
         """Сохраняем промежуточные данные при завершении работы"""
-        f = Files()
-        main_box = self.query_one("#data_box")
-        try:
-            main_box.mount(Input(id='save_file_name', placeholder='Имя файла для сохранения', value=f.file_name, classes='inputs'))
-            main_box.refresh()
-        except Exception:
-            pass
+        self.load_save_file(FileType.SAVE)
 
 
     def action_load_file(self):
         """ Загружаем результаты работы из файла"""
-        f = Files()
+        self.load_save_file(FileType.LOAD)
+    
+    def load_save_file(self, ft:FileType):
         main_box = self.query_one("#data_box")
+        match ft:
+            case FileType.SAVE:
+                f = Files(FileType.SAVE)
+                _id = 'save_file_name'
+                _placeholder = 'Имя файла для сохранения'
+            case FileType.LOAD:
+                f = Files(FileType.LOAD)
+                _id = 'load_file_name'
+                _placeholder = 'Имя файля для загрузки'
         try:
-            main_box.mount(Input(id='load_file_name', placeholder='Имя файла для загрузки', value=f.file_name, classes='inputs'))
-            main_box.refresh()
+            main_box.mount(Input(id=_id, placeholder=_placeholder, value=f.file_name, classes='inputs'))
         except Exception:
             pass
 # --------------------------------------------
@@ -104,7 +109,7 @@ class TextualKepApp(App):
         table = self.query_one(DataTable)
         if event.input.id == 'load_file_name':        
 # ------------ Если происходит загрузка файла, очищаем таблицу и загружаем данные из файла                
-            res = Files().load_from_file(self.query_one('#load_file_name').value)
+            res = Files(FileType.LOAD).load_from_file(self.query_one('#load_file_name').value)
             oper_string = f'Загрузка из файла {event.input.value}'
             if res is not None:
                 table.rows.clear()
@@ -113,7 +118,7 @@ class TextualKepApp(App):
                 table.refresh()
         elif event.input.id == 'save_file_name':
 # ----------- Если происходит сохранение файла выгружаем данные таблицы в список и сериализуем его 
-            res = Files().save_to_file([table.get_row(key_) for key_ in table.rows])    
+            res = Files(FileType.SAVE).save_to_file([table.get_row(key_) for key_ in table.rows])    
             oper_string = f'Сохранение в файл {event.input.value}'
 # ----------- Сообщаем всему миру об успехе или неудаче операции 
         if res is not None:

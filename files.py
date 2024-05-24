@@ -5,11 +5,12 @@ from textual.widgets import Static, Input, Button, DirectoryTree, Label
 from textual.layouts import vertical, horizontal
 import pickle as pkl
 from datetime import datetime as dt
+from additions import FileType
 
 class Files:
-    def __init__(self):
-        self._file_name = f"result_{dt.now().strftime('%Y%m%d')}"
-        
+    def __init__(self, ft:FileType = FileType.SAVE):
+        self._file_type = ft
+        self._file_name = f"{self._file_type.name}_{dt.now().strftime('%Y%m%d_%H:%M')}"
         
     @property
     def file_name(self) -> str:
@@ -18,7 +19,7 @@ class Files:
     @file_name.setter
     def file_name(self, value:str) -> None:
         if not len(value):
-            self._file_name = f"result_{dt.now().strftime('%Y%m%d')}"
+            self._file_name = f"{self._file_type.name}_{dt.now().strftime('%Y%m%d')}"
         else:    
             self._file_name = value
         
@@ -38,15 +39,13 @@ class Files:
         except Exception as e:
             return e
     
-    def load_from_file(self, file_name=None):
+    def load_from_file(self):
         """Десериализация промежуточного результата
         Args:
             file_name (_type_, optional): Имя файла, если None, будет сгенерирован. Defaults to None.
         Returns:
             Any: если успешно, то вернет десериализованый объект иначе None
         """
-        if file_name is not None:
-            self.file_name = file_name
         try:
             with open(f"results/{self._file_name}", mode='rb') as fp:
                 _data = pkl.load(fp)
@@ -54,12 +53,3 @@ class Files:
         except FileNotFoundError:
             return None    
     
-
-class FileSaveDialog(Static):
-    def compose(self):
-        with vertical:
-            yield Label(id='path_label')
-            with horizontal: 
-                yield Input(placeholder="Введите имя файла для сохранения")
-                yield Button(id='select_dir_button', label='Каталог', classes='buttons')
-            yield DirectoryTree(path='~/', id='file_dialog')
