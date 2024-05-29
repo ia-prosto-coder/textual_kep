@@ -13,4 +13,9 @@ PLACEHOLDERS = ['Имя файла для выгрузки в Intouch',
                 'Имя файла для загрузки',
                 'Имя файла для сохранения']
 
+class DataTypes(enum.StrEnum):
+    FLOAT = "Float"
+    BOOLEAN  = 'Boolean'
+    INTEGER = 'Integer'
+
         

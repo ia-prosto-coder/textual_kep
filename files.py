@@ -57,8 +57,8 @@ class Files:
             with open(f"results/{self._file_name}", mode='rb') as fp:
                 _data = pkl.load(fp)
             return _data
-        except FileNotFoundError:
-            return None  
+        except Exception as e:
+            return e
 
     def save_to_kep(self, file_name=None):
         self.file_name = self.file_name if file_name is None else file_name

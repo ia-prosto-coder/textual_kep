@@ -1,6 +1,9 @@
 from transliterate import translit
 import csv
 
+from files import Files
+from additions import FileType
+
 class Export():
     def __init__(self):
         self._io_disc_headers = [':IODisc','Group', 'Comment', 'Logged', 'EventLogged',
@@ -58,12 +61,21 @@ class Export():
             res = ('сигнала нет', 'сигнал есть')       
         return res
     
-    def export_to_kep(self, data:list):
-       
-        for row in data:
-            for value in row:
+    def export_to_kep(self, data:list, file_name=None):
+        _file_name = file_name if file_name is not None else Files.create_file_name(FileType.KEP)
+        with open(_file_name, mode='w', encoding='cp1251' ) as fp:
+            writer = csv.writer(fp, delimiter=';')
+            _hd = True
+            if _hd:
+                writer.writerow(self.opc_headers)
+                _hd = False                
+            for row in data:
+                res_row = [None for _ in range(len(self.opc_headers))]
+                res_row[0] = row[1].join(row[0]) # Имя тега с постфиксом
+                res_row[1] = row[2]              #  Адрес с командой    
+                #TODO Сделать выбор типа данных из формы              
+                res_row[2] = 'float'             # Формат данных
                 
-
         
     def export_to_intouch(self):
         pass

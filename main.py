@@ -7,7 +7,7 @@ from textual import on
 from validator import Validator
 from files import Files
 from export import Export
-from additions import FileType, PLACEHOLDERS
+from additions import FileType, DataTypes,  PLACEHOLDERS
 
 NIGHT = False
 class TextualKepApp(App):
@@ -25,11 +25,18 @@ class TextualKepApp(App):
             ('15 Запись нескольких DO', 15),
             ('16 Запись нескольких AO', 16)
         ]
+        self.data_types = [
+            (DataTypes.FLOAT.value, DataTypes.FLOAT),
+            (DataTypes.INTEGER.value, DataTypes.INTEGER),
+            (DataTypes.BOOLEAN.value, DataTypes.BOOLEAN)
+        ]
+        
         self.inputs = [Input(id='postfix_button', placeholder='Постфикс тега'),
                 Input(id='tag_name', classes='inputs', placeholder='Имя тега'),
                 Input(id='address', classes='inputs', placeholder='Адрес регистра',),
                 Input(id='description', classes='inputs', placeholder='Описание'),
                 Select(id='command', classes='selects', options=self.rtu_commands, prompt='Команды  RTU'),
+                Select(id='data_type', classes='select', options=self.data_types, prompt='Тип данных'),
                 Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
                 Input(id='eu_min', classes='inputs', placeholder='Мин. значение'),
@@ -75,6 +82,8 @@ class TextualKepApp(App):
                         table.add_column('Ед.измерения')
                     if i.id == 'command':
                         table.add_column('Команда RTU')
+                    if i.id == 'data_type':
+                        table.add_column("Тип данных")
                     
         self.dark = NIGHT
 # ---- Обработка BINDINGS приложения -------
@@ -121,23 +130,25 @@ class TextualKepApp(App):
 # ------------ Если происходит загрузка файла, очищаем таблицу и загружаем данные из файла                
                 res = Files(FileType.LOAD).load_from_file(self.query_one('#file_name_input').value)
                 oper_string = f'Загрузка из файла {event.input.value}'
-                if res is not None:
+                if res is not None and isinstance(res, list):
                     table.rows.clear()
                     for row in res:
                         table.add_row(*row)
                     table.refresh()
+                    self.query_one(RichLog).write(f"{oper_string} успешно завершенa")
+                else:
+                    self.query_one(RichLog).write(f"Ошибка загрузки из {event.input.value}.{res}")
             case FileType.SAVE:
 # ----------- Если происходит сохранение файла выгружаем данные таблицы в список и сериализуем его 
                 res = Files(FileType.SAVE).save_to_file([table.get_row(key_) for key_ in table.rows], self.query_one('#file_name_input').value)    
                 oper_string = f'Сохранение в файл {event.input.value}'
+                if res is None:
+                    self.query_one(RichLog).write(f"{oper_string} успешно завершено")
+                else:
+                    self.query_one(RichLog).write(f"Ошибка сохранения {event.input.value}.{res}")    
             case FileType.KEP:
                 res = Files(FileType.KEP).save_to_kep(Export().export_to_kep([table.get_row(key_) for key_ in table.rows]))
                 oper_string = f'Экспорт в KEP {event.input.value}'
-# ----------- Сообщаем всему миру об успехе или неудаче операции 
-        if res is None:
-            self.query_one(RichLog).write(f"Файл {oper_string} успешно завершено")
-        else:
-            self.query_one(RichLog).write(f"Файл {event.input.value} не найден, или в файле ошибка {res}")
         self.query_one(f'#{event.input.id}').remove()
 
 
