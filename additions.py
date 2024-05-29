@@ -6,3 +6,11 @@ class FileType(enum.Enum):
     WEINTEK = 2
     LOAD = 3
     SAVE = 4
+
+PLACEHOLDERS = ['Имя файла для выгрузки в Intouch',
+                'Имя файла для выгрузки в KEP',
+                'Имя файла для выгрузки в Weintek',
+                'Имя файла для загрузки',
+                'Имя файла для сохранения']
+
+        

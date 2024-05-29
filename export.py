@@ -1,4 +1,5 @@
 from transliterate import translit
+import csv
 
 class Export():
     def __init__(self):
@@ -40,3 +41,32 @@ class Export():
     def opc_headers(self):
         return self._opc_headers
     
+    def _get_onoff_message(desc:str)->tuple:
+        res = tuple()
+        alarm = ['авар' in desc.lower(), 'hi' in desc.lower(), 'lo' in desc.lower(), 'перегруз' in desc.lower()]
+        control = ['включить' in desc.lower(), 'выключить' in desc.lower()]
+        state = ['включен' in desc.lower()]
+        if 'АУ' in desc:
+            res = ('не автомат', 'автомат')
+        elif any(state):
+            res = ('не в работе', 'в работе')
+        elif any(alarm):
+            res = ('нет аварии','авария')
+        elif any(control):
+            res = (' ', 'cработка')
+        else:
+            res = ('сигнала нет', 'сигнал есть')       
+        return res
+    
+    def export_to_kep(self, data:list):
+       
+        for row in data:
+            for value in row:
+                
+
+        
+    def export_to_intouch(self):
+        pass
+
+    def export_to_weintek(self):
+        pass

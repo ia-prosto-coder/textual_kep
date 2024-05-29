@@ -6,13 +6,15 @@ from textual import on
 
 from validator import Validator
 from files import Files
-from additions import FileType
+from export import Export
+from additions import FileType, PLACEHOLDERS
 
 NIGHT = False
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
         self.units = [('МПа', 0), ('С', 1), ('мм/с', 2), ('КПа', 3), ('Гц', 4), ('А', 5)]
+        self.file_type = FileType.LOAD
         self.rtu_commands  =[
             ('01 Чтение DO', 1),
             ('02 Чтение DI', 2),
@@ -41,6 +43,9 @@ class TextualKepApp(App):
                 ('S', 'save_file', 'Сохранить'),
                 ('C', 'copy_row', 'Дублировать'),
                 ('T', 'swap_theme', 'Сменить тему'),
+                ('W', 'weintek_export', 'Экспорт для панели Weintek'),
+                ('I', 'intouch_export', 'Экспортв в Intouch'),
+                ('K', 'kep_export', 'Экспорт в Kep'),
                 ('Q', 'quit_app', 'Завершить приложение')
         ]
     
@@ -80,64 +85,61 @@ class TextualKepApp(App):
         """Сохраняем промежуточные данные при завершении работы"""
         self.load_save_file(FileType.SAVE)
 
-
     def action_load_file(self):
         """ Загружаем результаты работы из файла"""
         self.load_save_file(FileType.LOAD)
+
+    def action_intouch_export(self):
+        """Экспортируем результаты для загрузки в Intouch"""
+        self.load_save_file(FileType.INTOUCH)
+
+    def action_kep_export(self):
+        """Экспортируем результаты для загрузки в Kep"""
+        self.load_save_file(FileType.KEP)
     
+    def action_weintek_export(self):
+        """Экспортируем результаты для загрузки в Weintek"""
+        self.load_save_file(FileType.WEINTEK)
+
     def load_save_file(self, ft:FileType):
+        self.file_type = ft
         main_box = self.query_one("#data_box")
-        match ft:
-            case FileType.SAVE:
-                f = Files(FileType.SAVE)
-                _id = 'save_file_name'
-                _placeholder = 'Имя файла для сохранения'
-            case FileType.LOAD:
-                f = Files(FileType.LOAD)
-                _id = 'load_file_name'
-                _placeholder = 'Имя файля для загрузки'
         try:
-            main_box.mount(Input(id=_id, placeholder=_placeholder, value=f.file_name, classes='inputs'))
+            main_box.mount(Input(id='file_name_input', placeholder=PLACEHOLDERS[ft.value], value=Files.create_file_name(ft), classes='inputs'))
         except Exception:
-            pass
-# --------------------------------------------
+            self.query('#file_name_input').remove()
+        main_box.refresh(layout=True)
+# -------------------------------------------
 
 # ------------ обработчики событий виджетов
-    @on(Input.Submitted)
-    def load_file_name_submitted(self, event:Input.Submitted) -> None:
+    @on(Input.Submitted, '#file_name_input')
+    def file_name_input_submitted(self, event:Input.Submitted) -> None:
         res = None
         table = self.query_one(DataTable)
-        if event.input.id == 'load_file_name':        
+        match self.file_type:
+            case FileType.LOAD:
 # ------------ Если происходит загрузка файла, очищаем таблицу и загружаем данные из файла                
-            res = Files(FileType.LOAD).load_from_file(self.query_one('#load_file_name').value)
-            oper_string = f'Загрузка из файла {event.input.value}'
-            if res is not None:
-                table.rows.clear()
-                for row in res:
-                    table.add_row(*row)
-                table.refresh()
-        elif event.input.id == 'save_file_name':
+                res = Files(FileType.LOAD).load_from_file(self.query_one('#file_name_input').value)
+                oper_string = f'Загрузка из файла {event.input.value}'
+                if res is not None:
+                    table.rows.clear()
+                    for row in res:
+                        table.add_row(*row)
+                    table.refresh()
+            case FileType.SAVE:
 # ----------- Если происходит сохранение файла выгружаем данные таблицы в список и сериализуем его 
-            res = Files(FileType.SAVE).save_to_file([table.get_row(key_) for key_ in table.rows])    
-            oper_string = f'Сохранение в файл {event.input.value}'
+                res = Files(FileType.SAVE).save_to_file([table.get_row(key_) for key_ in table.rows], self.query_one('#file_name_input').value)    
+                oper_string = f'Сохранение в файл {event.input.value}'
+            case FileType.KEP:
+                res = Files(FileType.KEP).save_to_kep(Export().export_to_kep([table.get_row(key_) for key_ in table.rows]))
+                oper_string = f'Экспорт в KEP {event.input.value}'
 # ----------- Сообщаем всему миру об успехе или неудаче операции 
-        if res is not None:
+        if res is None:
             self.query_one(RichLog).write(f"Файл {oper_string} успешно завершено")
         else:
-            self.query_one(RichLog).write(f"Файл {event.input.value} не найден, или в файле ошибка")
+            self.query_one(RichLog).write(f"Файл {event.input.value} не найден, или в файле ошибка {res}")
         self.query_one(f'#{event.input.id}').remove()
 
-    @on(Input.Submitted, "#save_file_name")
-    def save_file_name_submitted(self, event:Input.Submitted) -> None:
-        f = Files()
-        table_ = self.query_one(DataTable)  
-        res = f.save_to_file([table_.get_row(key_) for key_ in table_.rows])
-        self.query_one(RichLog).write([table_.get_row(key_) for key_ in table_.rows])
-        if  res is None:
-            self.query_one(RichLog).write('Файл успешно сохранен')
-        else:
-            self.query_one(RichLog).write(f'Файл не записан. Возникли проблемы {res}')       
-        
 
     @on(Button.Pressed, "#add_button")
     def add_button_pressed(self, event:Button.Pressed) -> None:
