@@ -1,5 +1,8 @@
 from transliterate import translit
+from os.path import exists
+from os import mkdir
 import csv
+
 
 from files import Files
 from additions import FileType
@@ -32,6 +35,8 @@ class Export():
         self._opc_headers = ['Tag Name', 'Address', 'Data Type', 'Respect Data Type', 'Client Access', 'Scan Rate', 'Scaling',
                    'Raw Low', 'Raw High', 'Scaled Low', 'Scaled High', 'Scaled Data Type', 'Clamp Low', 'Clamp High',
                    'Eng Units', 'Description', 'Negate Value']
+        if not exists('results'):
+            mkdir('results')
     @property
     def io_disk_headers(self):
         return self._io_disc_headers
@@ -61,9 +66,15 @@ class Export():
             res = ('сигнала нет', 'сигнал есть')       
         return res
     
-    def export_to_kep(self, data:list, file_name=None):
+    def export_to_kep(self, data:list, file_name:str=None):
+        """Экспортируем данные из таблицы в  KEP Server
+        Args:
+            data (list): Список с кортежами данных из строк таблицы
+            file_name (str, optional): Имя файла, если None ,будет
+            сгенерировано само. Defaults to None.
+        """
         _file_name = file_name if file_name is not None else Files.create_file_name(FileType.KEP)
-        with open(_file_name, mode='w', encoding='cp1251' ) as fp:
+        with open(f"results/{_file_name}", mode='w', encoding='cp1251' ) as fp:
             writer = csv.writer(fp, delimiter=';')
             _hd = True
             if _hd:

@@ -63,9 +63,10 @@ class Validator:
                     # Проверяем на пустое значение селекты-комбобоксы
                     select_check(self.inputs[4]),
                     select_check(self.inputs[5]),
+                    select_check(self.inputs[6]),
                     # Проверка ввода числовых значений
-                    max_min_value_check(self.inputs[6].value, self.inputs[6].id),
-                    max_min_value_check(self.inputs[7].value, self.inputs[7].id)
+                    max_min_value_check(self.inputs[7].value, self.inputs[6].id),
+                    max_min_value_check(self.inputs[8].value, self.inputs[7].id)
                     ]
         #  Возвращаем список косяков или True если все проверки пройдены
         return list(filter(lambda i:len(i), res_list)) if (any([len(i) for i in res_list])) else True

@@ -151,6 +151,17 @@ class TextualKepApp(App):
                 oper_string = f'Экспорт в KEP {event.input.value}'
         self.query_one(f'#{event.input.id}').remove()
 
+    def get_title(self, select:Select) -> str:
+        lst_ = self.rtu_commands
+        match select.id:
+            case 'unit':
+                lst_ = self.units
+            case 'command':
+                lst_ = self.rtu_commands
+            case 'data_type':
+                lst_ = self.data_types    
+        res_  = list(filter(lambda x:x[1]==select.value, lst_))[0][0]
+        return res_
 
     @on(Button.Pressed, "#add_button")
     def add_button_pressed(self, event:Button.Pressed) -> None:
@@ -158,16 +169,12 @@ class TextualKepApp(App):
         Args:
             event (Button.Pressed): Событие привязано к кнопке add_button
         """
-        def get_title(select:Select) -> str:
-            lst_ = self.units if select.id == 'unit' else self.rtu_commands
-            res_  = list(filter(lambda x:x[1]==select.value, lst_))[0][0]
-            return res_
-        
+
         table = self.query_one('#data_table')
-        # self.query_one(RichLog).write(res)
+        # Проверяем заполнение полей формы 
         val = Validator().inputs_test(self.inputs)
         if val == True:
-            res = (tuple([i.value if isinstance(i, Input) else get_title(i) for i in self.inputs]))
+            res = (tuple([i.value if isinstance(i, Input) else self.get_title(i) for i in self.inputs]))
             table.add_row(*res,)
         else:
             for row in val:
@@ -202,10 +209,13 @@ class TextualKepApp(App):
         """Возвращаем значения из выбраной строки таблицы в поля ввода"""
         def get_select_key(id:str,  data) -> int:
             sel_ = None
-            if id == 'command':
-                sel_ = self.rtu_commands
-            elif id == 'unit':
-                sel_ = self.units  
+            match id:
+                case 'command':
+                    sel_ = self.rtu_commands
+                case 'unit':
+                    sel_ = self.units
+                case 'data_type':
+                    sel_ = self.data_types  
             return list(filter(lambda x:x[0]==data, sel_))[0][1]
    
         
@@ -222,7 +232,10 @@ class TextualKepApp(App):
         """Записываем изменения в существующую запись"""
         table = self.query_one(DataTable)
         row_key, col_key = table.coordinate_to_cell_key(table.cursor_coordinate)
-        self.query_one(RichLog).write()
+        val = Validator().inputs_test(self.inputs)
+        if val == True:
+            res = (tuple([i.value if isinstance(i, Input) else self.get_title(i) for i in self.inputs])) 
+        table.rows[row_key] = res   
         
     @on(DataTable.HeaderSelected)
     def header_selected(self, event:DataTable.HeaderSelected) -> None:
