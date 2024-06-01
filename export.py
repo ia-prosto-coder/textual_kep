@@ -82,12 +82,15 @@ class Export():
                 _hd = False                
             for row in data:
                 res_row = [None for _ in range(len(self.opc_headers))]
-                res_row[0] = row[1].join(row[0]) # Имя тега с постфиксом
+                res_row[0] = f'{row[1]}{row[0]}' # Имя тега с постфиксом
                 res_row[1] = row[2]              #  Адрес с командой    
-                #TODO Сделать выбор типа данных из формы              
-                res_row[2] = 'float'             # Формат данных
-                
-        
+                res_row[2] = row[5].lower()      # Формат данных
+                res_row[3] = 1                   # Respect Data Type
+                res_row[4] = 'R/W' if row[9] else 'RO' # Режим доступа
+                res_row[5] = 100                 # Scan Rate не меняем. Не нужно
+                res_row[15] = translit(row[3], 'ru', reversed=True) #Description
+                writer.writerow(res_row)
+
     def export_to_intouch(self):
         pass
 

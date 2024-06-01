@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select
+from textual.widgets import Footer, Header, Input, DataTable, Button, RichLog, Select, Switch, Label
 from textual.scroll_view import ScrollView
-from textual.containers import ScrollableContainer, Container
+from textual.containers import ScrollableContainer, Container, Horizontal
 from textual import on
 
 from validator import Validator
@@ -9,7 +9,7 @@ from files import Files
 from export import Export
 from additions import FileType, DataTypes,  PLACEHOLDERS
 
-NIGHT = False
+NIGHT = True
 class TextualKepApp(App):
     def __init__(self):
         super().__init__()
@@ -40,6 +40,7 @@ class TextualKepApp(App):
                 Select(id='unit', classes='selects', options=self.units, prompt='Ед.измерения'),
                 Input(id='eu_max', classes='inputs', placeholder='Макс. значение'),
                 Input(id='eu_min', classes='inputs', placeholder='Мин. значение'),
+                Switch(id='rw_switch', classes='Switch')
                 ]
         self.sorts = set()
     
@@ -61,7 +62,12 @@ class TextualKepApp(App):
         with Container(id='main_box'):           
                 with ScrollableContainer(id='left_box', classes='containers'):
                     for inp in self.inputs:
-                        yield inp
+                        if isinstance(inp, Switch):
+                            with Horizontal():
+                                yield Label('Режим доступа "R/W"', id='rw_label', classes='label')
+                                yield inp
+                        else:    
+                            yield inp
                     yield Button(id='add_button', label='Добавить тег',  classes='buttons')
                     yield Button(id='post_button', label="Изменить строку", classes='buttons')
                     yield Button(id='clear_button', label='Очистить поля', classes='buttons')
@@ -84,7 +90,8 @@ class TextualKepApp(App):
                         table.add_column('Команда RTU')
                     if i.id == 'data_type':
                         table.add_column("Тип данных")
-                    
+                elif isinstance(i, Switch):
+                    table.add_column('R/W')   
         self.dark = NIGHT
 # ---- Обработка BINDINGS приложения -------
     def action_swap_theme(self):
@@ -121,6 +128,9 @@ class TextualKepApp(App):
 # -------------------------------------------
 
 # ------------ обработчики событий виджетов
+    # @on(Switch.Changed, '#rw_switch')
+    # def rw_switch_changed(self, event:Switch.Changed) -> None:
+
     @on(Input.Submitted, '#file_name_input')
     def file_name_input_submitted(self, event:Input.Submitted) -> None:
         res = None
@@ -147,7 +157,7 @@ class TextualKepApp(App):
                 else:
                     self.query_one(RichLog).write(f"Ошибка сохранения {event.input.value}.{res}")    
             case FileType.KEP:
-                res = Files(FileType.KEP).save_to_kep(Export().export_to_kep([table.get_row(key_) for key_ in table.rows]))
+                Export().export_to_kep([table.get_row(key_) for key_ in table.rows], file_name=event.input.value)
                 oper_string = f'Экспорт в KEP {event.input.value}'
         self.query_one(f'#{event.input.id}').remove()
 
@@ -174,7 +184,7 @@ class TextualKepApp(App):
         # Проверяем заполнение полей формы 
         val = Validator().inputs_test(self.inputs)
         if val == True:
-            res = (tuple([i.value if isinstance(i, Input) else self.get_title(i) for i in self.inputs]))
+            res = (tuple([self.get_title(i) if isinstance(i, Select) else i.value for i in self.inputs]))
             table.add_row(*res,)
         else:
             for row in val:
@@ -217,13 +227,14 @@ class TextualKepApp(App):
                 case 'data_type':
                     sel_ = self.data_types  
             return list(filter(lambda x:x[0]==data, sel_))[0][1]
-   
         
         table = self.query_one(DataTable)
         key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
         for index, data in enumerate(table.get_row(row_key=key)):
             if isinstance(self.inputs[index], Input):
                 self.inputs[index].value = data
+            elif isinstance(self.inputs[index], Switch):
+                self.inputs[index].value = data    
             elif isinstance(self.inputs[index], Select):
                 self.inputs[index].value = get_select_key(self.inputs[index].id, data)
             
@@ -231,11 +242,14 @@ class TextualKepApp(App):
     def edit_button_pressed(self) -> None:
         """Записываем изменения в существующую запись"""
         table = self.query_one(DataTable)
-        row_key, col_key = table.coordinate_to_cell_key(table.cursor_coordinate)
+        _row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
+        _col_keys = list(table.columns.keys())
         val = Validator().inputs_test(self.inputs)
         if val == True:
-            res = (tuple([i.value if isinstance(i, Input) else self.get_title(i) for i in self.inputs])) 
-        table.rows[row_key] = res   
+            iter_cols = iter(_col_keys)
+            for i in self.inputs:
+                cur_col =  next(iter_cols)
+                table.update_cell(row_key=_row_key, column_key=cur_col, value=self.get_title(i) if isinstance(i, Select) else i.value)
         
     @on(DataTable.HeaderSelected)
     def header_selected(self, event:DataTable.HeaderSelected) -> None:

@@ -37,7 +37,7 @@ class Validator:
                     raise ValueError
                 elif '.' in value:
                     lst_ = list(map(int, value.split('.')))
-                    if lst_ not in range(1, 65536) or lst_ not in range(0, 16):
+                    if lst_[0] not in range(1, 65536) or lst_[1] not in range(0, 16):
                         raise ValueError
                 return ''
             except ValueError:

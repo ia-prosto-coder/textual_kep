@@ -9,7 +9,7 @@ class Files:
     @staticmethod
     def create_file_name(ft:FileType) -> str:
         _t = 'RESULT' if ft in [FileType.SAVE, FileType.LOAD] else ft.name
-        return f"{_t}_{dt.now().strftime('%Y%m%d_%H:%M')}"
+        return f"{_t}_{dt.now().strftime('%Y%m%d_%H%M')}"
 
     def __init__(self, ft:FileType = FileType.SAVE):
         self._file_type = ft
@@ -60,8 +60,7 @@ class Files:
         except Exception as e:
             return e
 
-    def save_to_kep(self, file_name=None):
-        self.file_name = self.file_name if file_name is None else file_name
+
          
 
     

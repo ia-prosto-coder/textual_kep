@@ -14,9 +14,19 @@ Select{
     border: solid yellowgreen;
 }
 
+Switch{
+    border:solid;
+    padding: 0;
+}
+
 RichLog{
     color: lightcoral;
-    border: solid red;
+    border: solid black;
+}
+Label{
+    height: 3;
+    width: 80%;
+    padding: 1;
 }
 
 Button{
