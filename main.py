@@ -159,6 +159,9 @@ class TextualKepApp(App):
             case FileType.KEP:
                 Export().export_to_kep([table.get_row(key_) for key_ in table.rows], file_name=event.input.value)
                 oper_string = f'Экспорт в KEP {event.input.value}'
+            case FileType.INTOUCH:
+                Export().export_to_intouch([table.get_row(key_) for key_ in table.rows], file_name=event.input.value)
+                oper_string = f'Экспорт в INTOUCH {event.input.value}'
         self.query_one(f'#{event.input.id}').remove()
 
     def get_title(self, select:Select) -> str:
